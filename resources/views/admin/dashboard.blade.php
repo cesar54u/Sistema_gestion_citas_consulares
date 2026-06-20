@@ -94,7 +94,7 @@
 <div class="card">
     <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0"><i class="bi bi-calendar-check-fill me-2" style="color:#c60b1e;"></i>Citas Recientes</h6>
-        <a href="{{ route('admin.citas') }}" class="btn btn-sm" style="font-size:0.78rem;color:#c60b1e;">Ver todas →</a>
+        <a href="{{ route('admin.citas') }}" class="btn btn-sm" style="font-size:0.78rem;color:#c60b1e;">Ver todas</a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
