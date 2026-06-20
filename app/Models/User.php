@@ -2,31 +2,52 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $table = 'usuarios';
+
+    protected $fillable = [
+        'nombre', 'apellido', 'cedula', 'telefono',
+        'correo_electronico', 'usuario', 'password', 'rol'
+    ];
+
+    protected $hidden = ['password'];
+
+    protected $casts = ['password' => 'hashed'];
+
+    // Laravel Auth usa este campo para el email (notificaciones/reset)
+    public function getEmailAttribute() { return $this->correo_electronico; }
+    public function getAuthPassword() { return $this->password; }
+
+    // Accessor para nombre completo
+    public function getNombreCompletoAttribute(): string
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'bcrypt',
-        ];
+        return "{$this->nombre} {$this->apellido}";
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->rol === 'admin';
+    }
+
+    public function citas()
+    {
+        return $this->hasMany(Cita::class, 'usuario_id');
+    }
+
+    public function citasGestionadas()
+    {
+        return $this->hasMany(Cita::class, 'admin_id');
+    }
+
+    public function historial()
+    {
+        return $this->hasMany(HistorialSolicitud::class, 'usuario_id');
     }
 }
