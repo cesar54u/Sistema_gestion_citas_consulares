@@ -34,14 +34,23 @@ class CitaController extends Controller
             ->take(5)
             ->get();
 
+        $statsRaw = Cita::selectRaw('estado, count(*) as count')
+            ->where('usuario_id', $user->id)
+            ->groupBy('estado')
+            ->pluck('count', 'estado')
+            ->toArray();
+
         $estadisticas = [
-            'pendientes'  => Cita::where('usuario_id', $user->id)->where('estado', 'pendiente')->count(),
-            'aprobadas'   => Cita::where('usuario_id', $user->id)->where('estado', 'aprobada')->count(),
-            'completadas' => Cita::where('usuario_id', $user->id)->where('estado', 'completada')->count(),
-            'rechazadas'  => Cita::where('usuario_id', $user->id)->where('estado', 'rechazada')->count(),
+            'total'       => array_sum($statsRaw),
+            'pendientes'  => $statsRaw['pendiente'] ?? 0,
+            'aprobadas'   => $statsRaw['aprobada'] ?? 0,
+            'completadas' => $statsRaw['completada'] ?? 0,
+            'rechazadas'  => $statsRaw['rechazada'] ?? 0,
         ];
 
-        return view('usuario.dashboard', compact('proximasCitas', 'historialReciente', 'estadisticas'));
+        $serviciosDisponibles = Servicio::activos()->get();
+
+        return view('usuario.dashboard', compact('proximasCitas', 'historialReciente', 'estadisticas', 'serviciosDisponibles'));
     }
 
     /**

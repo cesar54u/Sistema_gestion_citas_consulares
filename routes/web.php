@@ -56,7 +56,7 @@ Route::middleware(['auth'])->group(function () {
 // ============================
 // PANEL ADMINISTRATIVO
 // ============================
-Route::middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin'])
+Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {

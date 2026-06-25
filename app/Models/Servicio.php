@@ -12,7 +12,7 @@ class Servicio extends Model
 
     public function citas()
     {
-        return $this->hasMany(Cita::class);
+        return $this->hasMany(Cita::class, 'servicio_id');
     }
 
     public function historial()

@@ -19,12 +19,20 @@ class AdminController extends Controller
     public function index()
     {
         $stats = [
-            'usuarios'        => User::where('rol', 'usuario')->count(),
-            'citas_pendientes' => Cita::where('estado', 'pendiente')->count(),
-            'citas_aprobadas' => Cita::where('estado', 'aprobada')->count(),
-            'citas_rechazadas'=> Cita::where('estado', 'rechazada')->count(),
-            'servicios_activos'=> Servicio::where('estado', true)->count(),
-            'citas_hoy'       => Cita::whereDate('fecha_cita', today())->count(),
+            'total_usuarios'    => User::count(),
+            'usuarios'          => User::where('rol', 'usuario')->count(),
+            'usuarios_este_mes' => User::where('rol', 'usuario')
+                                      ->whereMonth('created_at', now()->month)
+                                      ->whereYear('created_at', now()->year)
+                                      ->count(),
+            'total_citas'       => Cita::count(),
+            'citas_pendientes'  => Cita::where('estado', 'pendiente')->count(),
+            'citas_aprobadas'   => Cita::where('estado', 'aprobada')->count(),
+            'citas_rechazadas'  => Cita::where('estado', 'rechazada')->count(),
+            'citas_completadas' => Cita::where('estado', 'completada')->count(),
+            'citas_canceladas'  => Cita::where('estado', 'cancelada')->count(),
+            'servicios_activos' => Servicio::where('estado', true)->count(),
+            'citas_hoy'         => Cita::whereDate('fecha_cita', today())->count(),
         ];
 
         $citasRecientes = Cita::with(['usuario', 'servicio'])
@@ -138,7 +146,7 @@ class AdminController extends Controller
     // =============================================
     public function servicios()
     {
-        $servicios = Servicio::orderBy('nombre_producto')->paginate(15);
+        $servicios = Servicio::withCount('citas')->orderBy('nombre_producto')->paginate(15);
         return view('admin.servicios.index', compact('servicios'));
     }
 
@@ -155,7 +163,6 @@ class AdminController extends Controller
             'duracion'        => 'required|integer|min:5',
             'precio'          => 'required|numeric|min:0',
             'descripcion'     => 'nullable|string',
-            'estado'          => 'boolean',
         ]);
 
         Servicio::create([
@@ -164,7 +171,7 @@ class AdminController extends Controller
             'duracion'        => $request->duracion,
             'precio'          => $request->precio,
             'descripcion'     => $request->descripcion,
-            'estado'          => $request->boolean('estado', true),
+            'estado'          => $request->boolean('estado'),
         ]);
 
         return redirect()->route('admin.servicios')->with('success', 'Servicio creado exitosamente.');
@@ -191,7 +198,7 @@ class AdminController extends Controller
             'duracion'        => $request->duracion,
             'precio'          => $request->precio,
             'descripcion'     => $request->descripcion,
-            'estado'          => $request->boolean('estado', true),
+            'estado'          => $request->boolean('estado'),
         ]);
 
         return redirect()->route('admin.servicios')->with('success', 'Servicio actualizado correctamente.');
@@ -199,6 +206,14 @@ class AdminController extends Controller
 
     public function eliminarServicio(Servicio $servicio)
     {
+        $citasActivas = $servicio->citas()
+            ->whereIn('estado', ['pendiente', 'aprobada'])
+            ->exists();
+
+        if ($citasActivas) {
+            return back()->with('error', 'No se puede eliminar el servicio porque tiene citas pendientes o aprobadas asociadas.');
+        }
+
         $servicio->delete();
         return redirect()->route('admin.servicios')->with('success', 'Servicio eliminado.');
     }

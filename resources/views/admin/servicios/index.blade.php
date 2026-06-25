@@ -30,7 +30,7 @@
                 <div class="d-flex gap-3 mb-3" style="font-size:0.78rem;color:#6b7280;">
                     <span><i class="bi bi-clock me-1"></i>{{ $servicio->duracion }} min</span>
                     <span><i class="bi bi-tag me-1"></i>{{ $servicio->precio > 0 ? '$' . number_format($servicio->precio, 2) : 'Gratuito' }}</span>
-                    <span><i class="bi bi-calendar-check me-1"></i>{{ $servicio->citas->count() }} citas</span>
+                    <span><i class="bi bi-calendar-check me-1"></i>{{ $servicio->citas_count }} citas</span>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="{{ route('admin.servicios.editar', $servicio) }}" class="btn btn-sm flex-fill" style="background:#dbeafe;color:#1d4ed8;border-radius:8px;font-size:0.8rem;">
