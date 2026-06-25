@@ -54,7 +54,7 @@
                     <input type="password" name="password_confirmation" class="form-control" required>
                 </div>
             </div>
-            <div class="mt-4 d-flex gap-2">
+            <div class="mt-4 d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary text-white px-4">
                     <i class="bi bi-person-plus-fill me-2"></i>Crear Usuario
                 </button>

@@ -141,6 +141,8 @@
             padding-left: 1.5rem;
             padding-right: 1.5rem;
             min-height: 100vh;
+            max-width: 100vw;
+            overflow-x: hidden;
         }
 
         /* ===== CARDS ===== */
@@ -275,8 +277,18 @@
             .sidebar { transform: translateX(-100%); }
             .sidebar.show { transform: translateX(0); }
             .topbar { left: 0; }
-            .main-content { margin-left: 0; }
+            .main-content { margin-left: 0; padding-left: 1rem; padding-right: 1rem; }
         }
+
+        /* ===== SIDEBAR BACKDROP ===== */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1035;
+        }
+        .sidebar-backdrop.show { display: block; }
 
         /* ===== BANDERA ESPAÑOLA ===== */
         .es-flag-stripe {
@@ -290,6 +302,9 @@
 <body>
 <!-- Franja bandera española -->
 <div class="es-flag-stripe"></div>
+
+<!-- SIDEBAR BACKDROP -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
@@ -429,9 +444,19 @@
     // Sidebar toggle móvil
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.toggle('show');
+            if(sidebarBackdrop) sidebarBackdrop.classList.toggle('show');
+        });
+    }
+
+    if (sidebarBackdrop) {
+        sidebarBackdrop.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            sidebarBackdrop.classList.remove('show');
         });
     }
 
