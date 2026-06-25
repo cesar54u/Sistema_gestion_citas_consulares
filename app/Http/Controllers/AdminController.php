@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EstadoCitaMail;
+use App\Models\Correo;
 use App\Models\User;
 use App\Models\Cita;
 use App\Models\Servicio;
@@ -87,7 +90,7 @@ class AdminController extends Controller
             'password'           => 'required|string|min:8|confirmed',
         ]);
 
-        User::create([
+        $nuevoUsuario = User::create([
             'nombre'             => $request->nombre,
             'apellido'           => $request->apellido,
             'cedula'             => $request->cedula,
@@ -98,7 +101,16 @@ class AdminController extends Controller
             'password'           => Hash::make($request->password),
         ]);
 
-        return redirect()->route('admin.usuarios')->with('success', 'Usuario creado exitosamente.');
+        // Enviar correo de verificación si el usuario no es admin
+        if ($nuevoUsuario->rol === 'usuario') {
+            try {
+                event(new \Illuminate\Auth\Events\Registered($nuevoUsuario));
+            } catch (\Exception $e) {
+                // No fallar si el correo falla
+            }
+        }
+
+        return redirect()->route('admin.usuarios')->with('success', 'Usuario creado exitosamente. Se envió un correo de verificación.');
     }
 
     public function editarUsuario(User $usuario)
@@ -260,22 +272,30 @@ class AdminController extends Controller
     {
         $query = Cita::with(['usuario', 'servicio']);
 
+        if ($request->filled('usuario_id')) {
+            $query->where('usuario_id', $request->usuario_id);
+        }
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
-
         if ($request->filled('fecha')) {
             $query->whereDate('fecha_cita', $request->fecha);
         }
-
+        if ($request->filled('fecha_desde')) {
+            $query->whereDate('fecha_cita', '>=', $request->fecha_desde);
+        }
+        if ($request->filled('fecha_hasta')) {
+            $query->whereDate('fecha_cita', '<=', $request->fecha_hasta);
+        }
         if ($request->filled('servicio_id')) {
             $query->where('servicio_id', $request->servicio_id);
         }
 
         $citas     = $query->orderByDesc('fecha_cita')->paginate(20)->withQueryString();
         $servicios = Servicio::orderBy('nombre_producto')->get();
+        $usuarios  = User::where('rol', 'usuario')->orderBy('nombre')->get();
 
-        return view('admin.citas.index', compact('citas', 'servicios'));
+        return view('admin.citas.index', compact('citas', 'servicios', 'usuarios'));
     }
 
     public function verCita(Cita $cita)
@@ -293,8 +313,9 @@ class AdminController extends Controller
         ]);
 
         $this->registrarHistorial($cita, 'aprobacion', 'Cita aprobada por el administrador.');
+        $this->enviarCorreoEstado($cita);
 
-        return back()->with('success', 'Cita aprobada correctamente.');
+        return back()->with('success', 'Cita aprobada correctamente. Se notificó al usuario por correo.');
     }
 
     public function rechazarCita(Request $request, Cita $cita)
@@ -309,8 +330,9 @@ class AdminController extends Controller
         ]);
 
         $this->registrarHistorial($cita, 'rechazo', 'Cita rechazada. Motivo: ' . $request->motivo_rechazo);
+        $this->enviarCorreoEstado($cita);
 
-        return back()->with('success', 'Cita rechazada.');
+        return back()->with('success', 'Cita rechazada. Se notificó al usuario por correo.');
     }
 
     public function completarCita(Cita $cita)
@@ -322,8 +344,9 @@ class AdminController extends Controller
         ]);
 
         $this->registrarHistorial($cita, 'completada', 'Cita marcada como completada.');
+        $this->enviarCorreoEstado($cita);
 
-        return back()->with('success', 'Cita marcada como completada.');
+        return back()->with('success', 'Cita marcada como completada. Se notificó al usuario.');
     }
 
     public function reprogramarCita(Request $request, Cita $cita)
@@ -353,11 +376,26 @@ class AdminController extends Controller
     // =============================================
     public function historial(Request $request)
     {
-        $historial = HistorialSolicitud::with(['usuario', 'servicio', 'admin'])
-            ->orderByDesc('fecha_modificacion')
-            ->paginate(20);
+        $query = HistorialSolicitud::with(['usuario', 'servicio', 'admin'])
+            ->orderByDesc('fecha_modificacion');
 
-        return view('admin.historial', compact('historial'));
+        if ($request->filled('usuario_id')) {
+            $query->where('usuario_id', $request->usuario_id);
+        }
+        if ($request->filled('accion')) {
+            $query->where('accion', $request->accion);
+        }
+        if ($request->filled('fecha_desde')) {
+            $query->whereDate('fecha_cita', '>=', $request->fecha_desde);
+        }
+        if ($request->filled('fecha_hasta')) {
+            $query->whereDate('fecha_cita', '<=', $request->fecha_hasta);
+        }
+
+        $historial = $query->paginate(20)->withQueryString();
+        $usuarios  = User::orderBy('nombre')->get();
+
+        return view('admin.historial', compact('historial', 'usuarios'));
     }
 
     private function registrarHistorial(Cita $cita, string $accion, string $descripcion): void
@@ -374,5 +412,31 @@ class AdminController extends Controller
             'descripcion'       => $descripcion,
             'fecha_modificacion' => now(),
         ]);
+    }
+
+    private function enviarCorreoEstado(Cita $cita): void
+    {
+        try {
+            $cita->load(['usuario', 'servicio']);
+            Mail::to($cita->usuario->correo_electronico)->send(new EstadoCitaMail($cita));
+
+            Correo::create([
+                'emisor'       => config('mail.from.address'),
+                'destinatario' => $cita->usuario->correo_electronico,
+                'asunto'       => "Estado de Cita #{$cita->id}: " . ucfirst($cita->estado),
+                'cuerpo'       => "Notificación automática de cambio de estado enviada al usuario.",
+                'estado'       => 'enviado',
+                'intentos'     => 1,
+            ]);
+        } catch (\Exception $e) {
+            Correo::create([
+                'emisor'       => config('mail.from.address'),
+                'destinatario' => $cita->usuario->correo_electronico ?? 'desconocido',
+                'asunto'       => "Estado Cita #{$cita->id} [FALLO]",
+                'cuerpo'       => $e->getMessage(),
+                'estado'       => 'error',
+                'intentos'     => 1,
+            ]);
+        }
     }
 }

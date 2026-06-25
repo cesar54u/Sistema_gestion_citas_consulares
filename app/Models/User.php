@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\VerificarCorreoNotification;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -24,6 +26,12 @@ class User extends Authenticatable
     // Laravel Auth usa este campo para el email (notificaciones/reset)
     public function getEmailAttribute() { return $this->correo_electronico; }
     public function getAuthPassword() { return $this->password; }
+
+    // Usar nuestra notificación personalizada con diseño del consulado
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerificarCorreoNotification());
+    }
 
     // Accessor para nombre completo
     public function getNombreCompletoAttribute(): string

@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\CorreoController;
+use App\Http\Controllers\Admin\ExportController;
 
 // ============================
 // PÁGINA DE INICIO PÚBLICA
@@ -30,9 +32,26 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ============================
+// VERIFICACIÓN DE CORREO
+// ============================
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('/dashboard')->with('success', '¡Tu correo electrónico ha sido verificado con éxito!');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Illuminate\Http\Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('message', '¡Enlace de verificación enviado!');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+// ============================
 // PANEL DEL USUARIO
 // ============================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard',  [CitaController::class, 'index'])->name('dashboard');
 
@@ -95,4 +114,16 @@ Route::middleware(['auth', 'role:admin'])
 
     // Historial
     Route::get('/historial', [AdminController::class, 'historial'])->name('historial');
+
+    // Gestión de Correos
+    Route::get('/correos',                            [CorreoController::class, 'index'])->name('correos');
+    Route::post('/correos/recordatorios-masivos',     [CorreoController::class, 'enviarRecordatoriosMasivos'])->name('correos.recordatorios');
+    Route::post('/correos/cita/{cita}/estado',        [CorreoController::class, 'enviarEstadoCita'])->name('correos.estado-cita');
+    Route::delete('/correos/{correo}',                [CorreoController::class, 'eliminar'])->name('correos.eliminar');
+
+    // Exportación de datos
+    Route::get('/export/historial/pdf',   [ExportController::class, 'historialPdf'])->name('export.historial.pdf');
+    Route::get('/export/historial/excel', [ExportController::class, 'historialExcel'])->name('export.historial.excel');
+    Route::get('/export/citas/pdf',       [ExportController::class, 'citasPdf'])->name('export.citas.pdf');
+    Route::get('/export/citas/excel',     [ExportController::class, 'citasExcel'])->name('export.citas.excel');
 });

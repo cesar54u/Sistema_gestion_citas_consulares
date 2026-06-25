@@ -340,6 +340,9 @@
             <a href="{{ route('admin.historial') }}" class="sidebar-link {{ request()->routeIs('admin.historial') ? 'active' : '' }}">
                 <i class="bi bi-clock-history"></i> Historial
             </a>
+            <a href="{{ route('admin.correos') }}" class="sidebar-link {{ request()->routeIs('admin.correos*') ? 'active' : '' }}">
+                <i class="bi bi-envelope-fill"></i> Correos
+            </a>
         @else
             {{-- NAVEGACIÓN USUARIO --}}
             <div class="sidebar-section-title">Mi Portal</div>
