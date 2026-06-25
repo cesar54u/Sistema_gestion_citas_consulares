@@ -7,6 +7,11 @@
         <h1 class="page-title">Gestión de Correos</h1>
         <p class="page-breadcrumb">Historial de correos enviados y herramientas de envío</p>
     </div>
+    <div>
+        <a href="{{ route('admin.correos.configuracion') }}" class="btn btn-outline-primary shadow-sm" style="background:#fff;">
+            <i class="bi bi-gear-fill me-1"></i> Configurar Correo y Plantilla
+        </a>
+    </div>
 </div>
 
 {{-- Stats Cards --}}

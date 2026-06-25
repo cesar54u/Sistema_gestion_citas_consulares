@@ -117,6 +117,8 @@ Route::middleware(['auth', 'role:admin'])
 
     // Gestión de Correos
     Route::get('/correos',                            [CorreoController::class, 'index'])->name('correos');
+    Route::get('/correos/configuracion',              [CorreoController::class, 'configuracion'])->name('correos.configuracion');
+    Route::post('/correos/configuracion',             [CorreoController::class, 'guardarConfiguracion'])->name('correos.configuracion.guardar');
     Route::post('/correos/recordatorios-masivos',     [CorreoController::class, 'enviarRecordatoriosMasivos'])->name('correos.recordatorios');
     Route::post('/correos/cita/{cita}/estado',        [CorreoController::class, 'enviarEstadoCita'])->name('correos.estado-cita');
     Route::delete('/correos/{correo}',                [CorreoController::class, 'eliminar'])->name('correos.eliminar');

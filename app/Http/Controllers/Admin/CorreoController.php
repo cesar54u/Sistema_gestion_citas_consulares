@@ -41,6 +41,29 @@ class CorreoController extends Controller
         return view('admin.correos.index', compact('correos', 'stats'));
     }
 
+    // Configuración SMTP y Plantillas
+    public function configuracion()
+    {
+        $config = \App\Models\ConfiguracionCorreo::firstOrCreate(['id' => 1]);
+        return view('admin.correos.configuracion', compact('config'));
+    }
+
+    public function guardarConfiguracion(Request $request)
+    {
+        $request->validate([
+            'smtp_username' => 'nullable|email',
+            'smtp_password' => 'nullable|string',
+            'from_address'  => 'nullable|email',
+            'from_name'     => 'nullable|string',
+            'cuerpo_recordatorio' => 'nullable|string'
+        ]);
+
+        $config = \App\Models\ConfiguracionCorreo::firstOrCreate(['id' => 1]);
+        $config->update($request->all());
+
+        return back()->with('success', 'Configuración de correo actualizada correctamente.');
+    }
+
     // Enviar recordatorio manual a todos con cita mañana
     public function enviarRecordatoriosMasivos(Request $request)
     {

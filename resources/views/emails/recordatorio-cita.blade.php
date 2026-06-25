@@ -14,11 +14,17 @@ Te recordamos que tienes una **cita agendada** en el Consulado Honorario del Rei
 - **Dirección:** Consulado Honorario de España, Maracay, Aragua
 </x-mail::panel>
 
+@if($mensajePersonalizado)
+### 📌 Indicaciones
+
+{{ $mensajePersonalizado }}
+@else
 ### 📌 Recomendaciones
 
 - Llega **15 minutos antes** de tu hora de cita.
 - Trae tus documentos originales y copias.
 - En caso de no poder asistir, cancela tu cita desde el sistema con anticipación.
+@endif
 
 <x-mail::button :url="config('app.url') . '/citas/mis-citas'" color="red">
 Ver mis Citas

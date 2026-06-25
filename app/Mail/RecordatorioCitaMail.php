@@ -24,6 +24,9 @@ class RecordatorioCitaMail extends Mailable
 
     public function content(): Content
     {
+        $config = \App\Models\ConfiguracionCorreo::first();
+        $mensajePersonalizado = $config ? $config->cuerpo_recordatorio : null;
+
         return new Content(
             markdown: 'emails.recordatorio-cita',
             with: [
@@ -31,6 +34,7 @@ class RecordatorioCitaMail extends Mailable
                 'usuario'    => $this->cita->usuario,
                 'servicio'   => $this->cita->servicio,
                 'horasAntes' => $this->horasAntes,
+                'mensajePersonalizado' => $mensajePersonalizado,
             ],
         );
     }
