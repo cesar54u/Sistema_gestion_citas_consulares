@@ -27,10 +27,14 @@ class AppServiceProvider extends ServiceProvider
                 
                 if ($config && $config->smtp_username && $config->smtp_password) {
                     config([
-                        'mail.mailers.smtp.username' => $config->smtp_username,
-                        'mail.mailers.smtp.password' => $config->smtp_password,
-                        'mail.from.address' => $config->from_address ?: $config->smtp_username,
-                        'mail.from.name' => $config->from_name ?: 'Consulado España Maracay',
+                        'mail.default'                      => 'smtp',
+                        'mail.mailers.smtp.host'            => 'smtp.gmail.com',
+                        'mail.mailers.smtp.port'            => 587,
+                        'mail.mailers.smtp.encryption'      => 'tls',
+                        'mail.mailers.smtp.username'        => $config->smtp_username,
+                        'mail.mailers.smtp.password'        => $config->smtp_password,
+                        'mail.from.address'                 => $config->from_address ?: $config->smtp_username,
+                        'mail.from.name'                    => $config->from_name ?: 'Consulado España Maracay',
                     ]);
                 }
             }
