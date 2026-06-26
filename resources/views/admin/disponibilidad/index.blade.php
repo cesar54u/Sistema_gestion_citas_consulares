@@ -135,4 +135,84 @@
         </div>
     </div>
 </div>
+
+<div class="row g-4 mt-2">
+    <!-- Formulario para agregar fecha bloqueada -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0"><i class="bi bi-calendar-x-fill me-2" style="color:#c60b1e;"></i>Bloquear Fecha (Feriados / Vacaciones)</h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <form action="{{ route('admin.disponibilidad.fechas.guardar') }}" method="POST">
+                    @csrf
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Fecha *</label>
+                            <input type="date" name="fecha" class="form-control" value="{{ old('fecha') }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Motivo (Opcional)</label>
+                            <input type="text" name="motivo" class="form-control" value="{{ old('motivo') }}" placeholder="Ej: Día de la Independencia, Mantenimiento...">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-danger text-white w-100">
+                            <i class="bi bi-lock-fill me-2"></i>Bloquear Fecha
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de fechas bloqueadas -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0"><i class="bi bi-list-stars me-2" style="color:#c60b1e;"></i>Fechas Bloqueadas</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Motivo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($fechasBloqueadas as $fb)
+                            <tr>
+                                <td>
+                                    <span class="fw-600" style="font-size:0.875rem;">{{ \Carbon\Carbon::parse($fb->fecha)->format('d/m/Y') }}</span>
+                                </td>
+                                <td style="font-size:0.875rem;">
+                                    {{ $fb->motivo ?: 'Sin motivo específico' }}
+                                </td>
+                                <td>
+                                    <form action="{{ route('admin.disponibilidad.fechas.eliminar', $fb->id) }}" method="POST"
+                                          onsubmit="return confirm('¿Eliminar este bloqueo? La fecha volverá a estar disponible.')">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border-radius:8px;font-size:0.78rem;" type="submit">
+                                            <i class="bi bi-trash"></i> Desbloquear
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="3" class="text-center py-4">
+                                    <p class="text-muted mb-0">No hay fechas bloqueadas actualmente</p>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

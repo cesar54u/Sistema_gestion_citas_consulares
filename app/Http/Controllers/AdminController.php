@@ -105,12 +105,13 @@ class AdminController extends Controller
         if ($nuevoUsuario->rol === 'usuario') {
             try {
                 event(new \Illuminate\Auth\Events\Registered($nuevoUsuario));
+                return redirect()->route('admin.usuarios')->with('success', 'Usuario creado exitosamente. Se envió un correo de verificación.');
             } catch (\Exception $e) {
-                // No fallar si el correo falla
+                return redirect()->route('admin.usuarios')->with('error', 'Usuario creado, pero hubo un error enviando el correo de verificación: ' . $e->getMessage());
             }
         }
 
-        return redirect()->route('admin.usuarios')->with('success', 'Usuario creado exitosamente. Se envió un correo de verificación.');
+        return redirect()->route('admin.usuarios')->with('success', 'Administrador creado exitosamente.');
     }
 
     public function editarUsuario(User $usuario)
@@ -240,8 +241,27 @@ class AdminController extends Controller
             ->get();
 
         $servicios = Servicio::activos()->get();
+        $fechasBloqueadas = \App\Models\FechaBloqueada::orderBy('fecha')->get();
 
-        return view('admin.disponibilidad.index', compact('disponibilidades', 'servicios'));
+        return view('admin.disponibilidad.index', compact('disponibilidades', 'servicios', 'fechasBloqueadas'));
+    }
+
+    public function guardarFechaBloqueada(Request $request)
+    {
+        $request->validate([
+            'fecha'  => 'required|date|unique:fechas_bloqueadas,fecha',
+            'motivo' => 'nullable|string|max:255',
+        ]);
+
+        \App\Models\FechaBloqueada::create($request->only('fecha', 'motivo'));
+
+        return redirect()->route('admin.disponibilidad')->with('success', 'Fecha bloqueada correctamente.');
+    }
+
+    public function eliminarFechaBloqueada(\App\Models\FechaBloqueada $fecha)
+    {
+        $fecha->delete();
+        return redirect()->route('admin.disponibilidad')->with('success', 'Fecha bloqueada eliminada.');
     }
 
     public function guardarDisponibilidad(Request $request)

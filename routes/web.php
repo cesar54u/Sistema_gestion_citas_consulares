@@ -51,7 +51,7 @@ Route::post('/email/verification-notification', function (Illuminate\Http\Reques
 // ============================
 // PANEL DEL USUARIO
 // ============================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard',  [CitaController::class, 'index'])->name('dashboard');
 
@@ -103,6 +103,8 @@ Route::middleware(['auth', 'role:admin'])
     Route::get('/disponibilidad',        [AdminController::class, 'disponibilidad'])->name('disponibilidad');
     Route::post('/disponibilidad',       [AdminController::class, 'guardarDisponibilidad'])->name('disponibilidad.guardar');
     Route::delete('/disponibilidad/{disponibilidad}', [AdminController::class, 'eliminarDisponibilidad'])->name('disponibilidad.eliminar');
+    Route::post('/disponibilidad/fechas-bloqueadas', [AdminController::class, 'guardarFechaBloqueada'])->name('disponibilidad.fechas.guardar');
+    Route::delete('/disponibilidad/fechas-bloqueadas/{fecha}', [AdminController::class, 'eliminarFechaBloqueada'])->name('disponibilidad.fechas.eliminar');
 
     // Gestión de Citas
     Route::get('/citas',                         [AdminController::class, 'citas'])->name('citas');

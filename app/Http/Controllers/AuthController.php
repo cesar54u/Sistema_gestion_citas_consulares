@@ -45,7 +45,7 @@ class AuthController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        return $this->redirectByRole($user);
+        return redirect()->intended($user->isAdmin() ? route('admin.dashboard') : route('dashboard'));
     }
 
     public function register(Request $request)
@@ -83,12 +83,12 @@ class AuthController extends Controller
             'rol'                => 'usuario',
         ]);
 
-        // event(new \Illuminate\Auth\Events\Registered($user));
+        event(new \Illuminate\Auth\Events\Registered($user));
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard');
+        return redirect()->route('verification.notice');
     }
 
     public function logout(Request $request)

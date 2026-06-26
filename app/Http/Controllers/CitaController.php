@@ -76,9 +76,18 @@ class CitaController extends Controller
         $diaSemana  = $this->nombreDiaEspanol($fecha->dayOfWeek);
         $servicioId = $request->servicio_id;
 
+        // Verificar si la fecha está bloqueada (feriado/excepción)
+        $bloqueada = \App\Models\FechaBloqueada::where('fecha', $fecha->format('Y-m-d'))->first();
+        if ($bloqueada) {
+            return response()->json(['horarios' => [], 'mensaje' => 'Esta fecha no está disponible: ' . ($bloqueada->motivo ?: 'Día festivo/inactivo')]);
+        }
+
         // Buscar disponibilidad del día
         $disponibilidades = Disponibilidad::where('dia_semana', $diaSemana)
             ->where('activo', true)
+            ->where(function ($query) use ($servicioId) {
+                $query->whereNull('servicio_id')->orWhere('servicio_id', $servicioId);
+            })
             ->get();
 
         if ($disponibilidades->isEmpty()) {
@@ -147,7 +156,17 @@ class CitaController extends Controller
         $fecha     = Carbon::parse($request->fecha_cita);
         $diaSemana = $this->nombreDiaEspanol($fecha->dayOfWeek);
 
-        $disponibilidad = Disponibilidad::where('dia_semana', $diaSemana)->where('activo', true)->first();
+        $bloqueada = \App\Models\FechaBloqueada::where('fecha', $fecha->format('Y-m-d'))->first();
+        if ($bloqueada) {
+            return back()->withErrors(['fecha_cita' => 'Esta fecha no está disponible: ' . ($bloqueada->motivo ?: 'Día festivo/inactivo')])->withInput();
+        }
+
+        $disponibilidad = Disponibilidad::where('dia_semana', $diaSemana)
+            ->where('activo', true)
+            ->where(function ($query) use ($request) {
+                $query->whereNull('servicio_id')->orWhere('servicio_id', $request->servicio_id);
+            })
+            ->first();
 
         if (!$disponibilidad) {
             return back()->withErrors(['fecha_cita' => 'No hay disponibilidad para el día seleccionado.'])->withInput();
