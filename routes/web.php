@@ -51,7 +51,7 @@ Route::post('/email/verification-notification', function (Illuminate\Http\Reques
 // ============================
 // PANEL DEL USUARIO
 // ============================
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard',  [CitaController::class, 'index'])->name('dashboard');
 

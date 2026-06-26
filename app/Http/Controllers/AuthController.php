@@ -83,12 +83,12 @@ class AuthController extends Controller
             'rol'                => 'usuario',
         ]);
 
-        event(new \Illuminate\Auth\Events\Registered($user));
+        // event(new \Illuminate\Auth\Events\Registered($user));
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('verification.notice');
+        return redirect()->route('dashboard');
     }
 
     public function logout(Request $request)
