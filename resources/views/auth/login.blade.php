@@ -159,6 +159,7 @@
                         <input type="checkbox" class="form-check-input" name="remember" id="remember">
                         <label class="form-check-label" for="remember" style="font-size:0.85rem;">Recordarme</label>
                     </div>
+                    <a href="{{ route('password.request') }}" style="font-size:0.85rem;color:var(--es-red);text-decoration:none;font-weight:500;">¿Olvidaste tu contraseña?</a>
                 </div>
 
                 <button type="submit" class="btn btn-login btn-primary w-100 text-white">

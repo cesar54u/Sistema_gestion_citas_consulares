@@ -343,6 +343,14 @@
             <a href="{{ route('admin.correos') }}" class="sidebar-link {{ request()->routeIs('admin.correos*') ? 'active' : '' }}">
                 <i class="bi bi-envelope-fill"></i> Correos
             </a>
+
+            <div class="sidebar-section-title mt-2">Mi Cuenta</div>
+            <a href="{{ route('perfil') }}" class="sidebar-link {{ request()->routeIs('perfil') ? 'active' : '' }}">
+                <i class="bi bi-person-fill"></i> Perfil
+            </a>
+            <a href="{{ route('password.change.form') }}" class="sidebar-link {{ request()->routeIs('password.change.form') ? 'active' : '' }}">
+                <i class="bi bi-shield-lock-fill"></i> Cambiar Contraseña
+            </a>
         @else
             {{-- NAVEGACIÓN USUARIO --}}
             <div class="sidebar-section-title">Mi Portal</div>
@@ -362,6 +370,9 @@
             <div class="sidebar-section-title mt-2">Mi Cuenta</div>
             <a href="{{ route('perfil') }}" class="sidebar-link {{ request()->routeIs('perfil') ? 'active' : '' }}">
                 <i class="bi bi-person-fill"></i> Perfil
+            </a>
+            <a href="{{ route('password.change.form') }}" class="sidebar-link {{ request()->routeIs('password.change.form') ? 'active' : '' }}">
+                <i class="bi bi-shield-lock-fill"></i> Cambiar Contraseña
             </a>
         @endif
     </nav>
